@@ -11,6 +11,9 @@ const app = express();
 // Connexion base de données
 connectDB();
 
+// Render (et la plupart des hébergeurs) passent par un reverse proxy
+app.set('trust proxy', 1);
+
 // Sécurité headers HTTP
 app.use(helmet());
 
