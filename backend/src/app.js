@@ -22,11 +22,13 @@ if (process.env.NODE_ENV !== 'production') {
   app.use(morgan('dev'));
 }
 
-// CORS — liste blanche des origines autorisées
+// CORS — nettoie la valeur (supprime guillemets et espaces parasites)
+const frontendUrl = (process.env.FRONTEND_URL || '').trim().replace(/^["']|["']$/g, '');
+
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
-  process.env.FRONTEND_URL,
+  frontendUrl,
 ].filter(Boolean);
 
 app.use(cors({
