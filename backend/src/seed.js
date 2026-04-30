@@ -6,6 +6,9 @@ const seed = async () => {
   await mongoose.connect(process.env.MONGODB_URI);
   console.log('Connecté à MongoDB...');
 
+  const email    = process.env.ADMIN_EMAIL    || 'admin@eford.fr';
+  const password = process.env.ADMIN_PASSWORD || 'Admin1234!';
+
   const existing = await User.findOne({ role: 'admin' });
   if (existing) {
     console.log('Un compte admin existe déjà :', existing.email);
@@ -15,16 +18,15 @@ const seed = async () => {
   const admin = await User.create({
     firstName: 'Admin',
     lastName: 'Eford',
-    email: 'admin@eford.fr',
-    password: 'Admin1234!',
+    email,
+    password,
     role: 'admin',
     isActive: true,
   });
 
   console.log('Compte admin créé :');
   console.log('  Email    :', admin.email);
-  console.log('  Password : Admin1234!');
-  console.log('Changez ce mot de passe dès la première connexion !');
+  console.log('  Password :', password);
   process.exit(0);
 };
 
