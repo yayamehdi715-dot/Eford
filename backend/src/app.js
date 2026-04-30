@@ -70,6 +70,8 @@ app.use('/api/stats', require('./routes/stats'));
 app.use('/api/files', require('./routes/files'));
 app.use('/api/pdf', require('./routes/pdf'));
 
+app.use('/api/seed', require('./routes/seed'));
+
 // Health check pour le cron job externe (évite le sleep sur Render free tier)
 app.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
 
