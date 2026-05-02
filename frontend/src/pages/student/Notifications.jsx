@@ -45,7 +45,7 @@ export default function StudentNotifications() {
       <div className="card">
         {isLoading ? <Spinner page /> : data?.data?.length === 0 ? <EmptyState message="Aucune notification" /> : (
           <>
-            {data.data.map(n => (
+            {(data?.data || []).map(n => (
               <div
                 key={n._id}
                 onClick={() => !n.isRead && readMut.mutate(n._id)}

@@ -80,7 +80,7 @@ export default function TeacherAssignments() {
             <table>
               <thead><tr><th>Titre</th><th>Cours</th><th>Fichier</th><th>Date limite</th><th>Publié le</th><th></th></tr></thead>
               <tbody>
-                {data.data.map(a => (
+                {(data?.data || []).map(a => (
                   <tr key={a._id}>
                     <td><strong>{a.title}</strong><br /><span className="text-xs" style={{ color: 'var(--gray-500)' }}>{a.description}</span></td>
                     <td>{a.course?.title}</td>

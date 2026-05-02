@@ -41,7 +41,7 @@ export default function StudentCourses() {
 
       {isLoading ? <Spinner page /> : data?.data?.length === 0 ? <EmptyState message="Aucun cours disponible" /> : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
-          {data.data.map(c => {
+          {(data?.data || []).map(c => {
             const full = c.enrolledCount >= c.maxStudents;
             return (
               <div key={c._id} className="card">

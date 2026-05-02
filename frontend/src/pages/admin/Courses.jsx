@@ -99,7 +99,7 @@ export default function AdminCourses() {
             <table>
               <thead><tr><th>Titre</th><th>Professeur</th><th>Salle</th><th>Places</th><th>Approbation</th><th>Statut</th><th>Actions</th></tr></thead>
               <tbody>
-                {data.data.map(c => (
+                {(data?.data || []).map(c => (
                   <tr key={c._id}>
                     <td><strong>{c.title}</strong></td>
                     <td>{c.teacher ? `${c.teacher.firstName} ${c.teacher.lastName}` : '—'}</td>

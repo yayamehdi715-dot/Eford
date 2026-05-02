@@ -68,7 +68,7 @@ export default function AdminTeachers() {
                 </tr>
               </thead>
               <tbody>
-                {data.data.map(t => (
+                {(data?.data || []).map(t => (
                   <tr key={t._id}>
                     <td><strong>{t.firstName} {t.lastName}</strong></td>
                     <td><code style={{ fontSize: '.8rem', background: 'var(--gray-100)', padding: '2px 6px', borderRadius: 4 }}>{t.username || '—'}</code></td>

@@ -51,7 +51,7 @@ export default function AdminAbsences() {
             <table>
               <thead><tr><th>Personne</th><th>Cours</th><th>Date</th><th>Type</th><th>Raison</th><th>Notifié</th></tr></thead>
               <tbody>
-                {data.data.map(a => (
+                {(data?.data || []).map(a => (
                   <tr key={a._id}>
                     <td>{a.user?.firstName} {a.user?.lastName}</td>
                     <td>{a.course?.title}</td>

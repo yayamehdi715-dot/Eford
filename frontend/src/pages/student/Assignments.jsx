@@ -38,7 +38,7 @@ export default function StudentAssignments() {
             <table>
               <thead><tr><th>Titre</th><th>Cours</th><th>Professeur</th><th>Date limite</th><th>Fichier</th></tr></thead>
               <tbody>
-                {data.data.map(a => (
+                {(data?.data || []).map(a => (
                   <tr key={a._id}>
                     <td>
                       <strong>{a.title}</strong>

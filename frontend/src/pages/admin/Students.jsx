@@ -57,7 +57,7 @@ export default function AdminStudents() {
                 <tr><th>Nom</th><th>Email</th><th>Téléphone</th><th>Statut</th><th>Actions</th></tr>
               </thead>
               <tbody>
-                {data.data.map(s => (
+                {(data?.data || []).map(s => (
                   <tr key={s._id}>
                     <td><strong>{s.firstName} {s.lastName}</strong></td>
                     <td>{s.email}</td>

@@ -30,7 +30,7 @@ export default function StudentAbsences() {
               <table>
                 <thead><tr><th>Date</th><th>Cours</th><th>Raison</th></tr></thead>
                 <tbody>
-                  {data.data.map(a => (
+                  {(data?.data || []).map(a => (
                     <tr key={a._id}>
                       <td>{format(new Date(a.date), 'EEEE dd MMMM yyyy', { locale: fr })}</td>
                       <td>{a.course?.title}</td>

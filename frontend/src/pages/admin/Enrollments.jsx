@@ -58,7 +58,7 @@ export default function AdminEnrollments() {
                 <tr><th>Élève</th><th>Cours</th><th>Date demande</th><th>Statut</th><th>Actions</th></tr>
               </thead>
               <tbody>
-                {data.data.map(e => (
+                {(data?.data || []).map(e => (
                   <tr key={e._id}>
                     <td><strong>{e.student?.firstName} {e.student?.lastName}</strong><br /><span className="text-xs" style={{ color: 'var(--gray-500)' }}>{e.student?.email}</span></td>
                     <td>{e.course?.title}</td>

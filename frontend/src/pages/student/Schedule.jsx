@@ -41,7 +41,7 @@ export default function StudentSchedule() {
         <button className="btn btn-secondary" onClick={handlePdf}>Exporter PDF</button>
       </div>
 
-      {schedules?.length === 0 ? <EmptyState message="Aucun cours dans votre emploi du temps. Inscrivez-vous à des cours !" /> : (
+      {!(schedules?.length) ? <EmptyState message="Aucun cours dans votre emploi du temps. Inscrivez-vous à des cours !" /> : (
         <div className="card">
           <div className="schedule-grid">
             <table className="schedule-table">
