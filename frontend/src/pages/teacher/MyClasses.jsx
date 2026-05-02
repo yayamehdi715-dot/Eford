@@ -65,14 +65,14 @@ export default function TeacherMyClasses() {
           </div>
         }
       >
-        {studentsLoading ? <Spinner /> : students?.length === 0
+        {studentsLoading ? <Spinner /> : !(students?.length)
           ? <p style={{ color: 'var(--gray-400)', fontSize: '.875rem' }}>Aucun élève inscrit</p>
           : (
             <div className="table-wrap">
               <table>
                 <thead><tr><th>Nom</th><th>Email</th><th>Téléphone</th></tr></thead>
                 <tbody>
-                  {students.map(s => (
+                  {(students || []).map(s => (
                     <tr key={s._id}>
                       <td>{s.firstName} {s.lastName}</td>
                       <td>{s.email}</td>

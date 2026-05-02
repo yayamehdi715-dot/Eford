@@ -58,7 +58,25 @@ const syncAdmin = async () => {
 (async () => {
   await connectDB();
   await syncAdmin();
+  scheduleAbsenceCleanup();
 })();
+
+// Supprime les absences de plus de 14 jours — tourne toutes les 24h
+function scheduleAbsenceCleanup() {
+  const run = async () => {
+    try {
+      const Absence = require('./models/Absence');
+      const cutoff = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+      const { deletedCount } = await Absence.deleteMany({ date: { $lt: cutoff } });
+      if (deletedCount) console.log(`[cleanup] ${deletedCount} absence(s) supprimée(s) (> 14 jours)`);
+    } catch (err) {
+      console.error('[cleanup] Erreur :', err.message);
+    }
+  };
+  // Premier passage 10 s après le démarrage, puis toutes les 24h
+  setTimeout(run, 10_000);
+  setInterval(run, 24 * 60 * 60 * 1000);
+}
 
 app.set('trust proxy', 1);
 app.use(helmet());

@@ -6,7 +6,7 @@ const Course = require('../models/Course');
 const authenticate = require('../middleware/auth');
 const authorize = require('../middleware/roles');
 const validate = require('../middleware/validate');
-const { notifyCourseStudents } = require('../services/notificationService');
+const { notifyCourseStudents, createNotification } = require('../services/notificationService');
 const { sendTeacherAbsenceNotification } = require('../services/emailService');
 const User = require('../models/User');
 
@@ -120,6 +120,10 @@ router.post('/students', authorize('teacher', 'admin'), [
       }
     }
 
+    // Récupérer les infos du cours pour les notifications
+    const course = await Course.findById(courseId);
+    const dateStr = new Date(date).toLocaleDateString('fr-FR');
+
     // Créer les absences en évitant les doublons
     const absences = await Promise.all(
       absentStudentIds.map(studentId =>
@@ -130,6 +134,21 @@ router.post('/students', authorize('teacher', 'admin'), [
         )
       )
     );
+
+    // Notifier chaque élève absent
+    if (course) {
+      await Promise.all(
+        absentStudentIds.map(studentId =>
+          createNotification({
+            recipient: studentId,
+            course: courseId,
+            type: 'absence',
+            title: 'Absence enregistrée',
+            message: `Une absence a été enregistrée pour le cours "${course.title}" le ${dateStr}.`,
+          }).catch(console.error)
+        )
+      );
+    }
 
     res.status(201).json(absences);
   } catch { res.status(500).json({ message: 'Erreur serveur' }); }
