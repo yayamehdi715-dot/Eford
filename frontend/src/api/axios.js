@@ -49,7 +49,14 @@ api.interceptors.response.use(
       } catch (refreshErr) {
         processQueue(refreshErr);
         localStorage.removeItem('accessToken');
-        window.location.href = '/login';
+        // Redirect students to their login page, staff to /login
+        try {
+          const stored = JSON.parse(localStorage.getItem('eford-auth') || '{}');
+          const role = stored?.state?.user?.role;
+          window.location.href = role === 'student' ? '/student-login' : '/login';
+        } catch {
+          window.location.href = '/login';
+        }
         return Promise.reject(refreshErr);
       } finally {
         isRefreshing = false;

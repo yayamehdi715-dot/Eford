@@ -22,7 +22,7 @@ export default function StudentLayout() {
 
   const { mutate: doLogout } = useMutation({
     mutationFn: logout,
-    onSettled: () => { clearAuth(); navigate('/login'); },
+    onSettled: () => { clearAuth(); navigate('/student-login'); },
   });
 
   const closeSidebar = () => setSidebarOpen(false);

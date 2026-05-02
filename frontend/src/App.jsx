@@ -7,7 +7,8 @@ import TeacherLayout from './layouts/TeacherLayout';
 import StudentLayout from './layouts/StudentLayout';
 
 // Lazy loading de toutes les pages
-const Login = lazy(() => import('./pages/Login'));
+const Login        = lazy(() => import('./pages/Login'));
+const StudentLogin = lazy(() => import('./pages/StudentLogin'));
 
 // Admin
 const AdminDashboard    = lazy(() => import('./pages/admin/Dashboard'));
@@ -38,11 +39,12 @@ const StudentAssignments  = lazy(() => import('./pages/student/Assignments'));
 const StudentAbsences     = lazy(() => import('./pages/student/Absences'));
 const StudentNotifications = lazy(() => import('./pages/student/Notifications'));
 
+const loginFor = (role) => role === 'student' ? '/student-login' : '/login';
+
 const RequireAuth = ({ children, role }) => {
   const { user } = useAuthStore();
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to={loginFor(role)} replace />;
   if (role && user.role !== role) {
-    // Rediriger vers le bon espace selon le rôle
     const redirects = { admin: '/admin', teacher: '/teacher', student: '/student' };
     return <Navigate to={redirects[user.role] || '/login'} replace />;
   }
@@ -55,6 +57,7 @@ export default function App() {
       <Suspense fallback={<Spinner page />}>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/student-login" element={<StudentLogin />} />
 
           {/* Admin */}
           <Route path="/admin" element={<RequireAuth role="admin"><AdminLayout /></RequireAuth>}>
@@ -106,3 +109,4 @@ function RootRedirect() {
   const redirects = { admin: '/admin', teacher: '/teacher', student: '/student' };
   return <Navigate to={redirects[user.role] || '/login'} replace />;
 }
+

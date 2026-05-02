@@ -1,46 +1,24 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { login, register } from '../api';
+import { login } from '../api';
 import useAuthStore from '../store/authStore';
-import api from '../api/axios';
 
 export default function Login() {
-  const [mode, setMode] = useState('login'); // 'login' | 'register'
   const { setAuth } = useAuthStore();
   const navigate = useNavigate();
-
-  const [form, setForm] = useState({ firstName: '', lastName: '', identifier: '', email: '', password: '', phone: '' });
+  const [form, setForm] = useState({ username: '', password: '' });
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
 
-  const handleLogin = async () => {
-    const isEmail = form.identifier.includes('@');
-    if (isEmail) {
-      // Student login by email
-      try {
-        return await api.post('/auth/student-login', { email: form.identifier, password: form.password });
-      } catch (err) {
-        if (err.response?.status === 401) throw err;
-        // Fall through to staff login (admin email)
-      }
-    }
-    // Staff login by username (or admin email)
-    return login({ username: form.identifier, password: form.password });
-  };
-
   const { mutate, isPending } = useMutation({
-    mutationFn: mode === 'login'
-      ? handleLogin
-      : () => register({ firstName: form.firstName, lastName: form.lastName, email: form.email, password: form.password, phone: form.phone }),
+    mutationFn: () => login({ username: form.username, password: form.password }),
     onSuccess: ({ data }) => {
       setAuth(data.user, data.accessToken);
-      const redirects = { admin: '/admin', teacher: '/teacher', student: '/student' };
-      navigate(redirects[data.user.role] || '/');
+      const redirects = { admin: '/admin', teacher: '/teacher' };
+      navigate(redirects[data.user.role] || '/admin');
     },
-    onError: () => {
-      toast.error('Identifiants incorrects');
-    },
+    onError: () => toast.error('Identifiants incorrects'),
   });
 
   const handleSubmit = (e) => { e.preventDefault(); mutate(); };
@@ -51,76 +29,50 @@ export default function Login() {
         <div className="login-brand">
           <div className="login-logo">S</div>
           <h1 className="login-title">School</h1>
-          <p className="login-subtitle">Plateforme de gestion scolaire</p>
+          <p className="login-subtitle">Espace administration & enseignants</p>
         </div>
 
         <div className="card login-card">
-          <div className="tab-bar">
-            {[
-              { key: 'login', label: 'Connexion' },
-              { key: 'register', label: 'Inscription élève' },
-            ].map(({ key, label }) => (
-              <button key={key} onClick={() => setMode(key)} className={`tab-btn${mode === key ? ' active' : ''}`}>
-                {label}
-              </button>
-            ))}
-          </div>
+          <h2 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--gray-900)', marginBottom: '1.25rem' }}>
+            Connexion
+          </h2>
 
           <form onSubmit={handleSubmit}>
-            {mode === 'register' && (
-              <>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">Prénom</label>
-                    <input className="form-input" value={form.firstName} onChange={set('firstName')} required autoComplete="given-name" />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Nom</label>
-                    <input className="form-input" value={form.lastName} onChange={set('lastName')} required autoComplete="family-name" />
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Email</label>
-                  <input type="email" className="form-input" value={form.email} onChange={set('email')} required autoComplete="email" />
-                </div>
-              </>
-            )}
-
-            {mode === 'login' && (
-              <div className="form-group">
-                <label className="form-label">Identifiant</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  value={form.identifier}
-                  onChange={set('identifier')}
-                  required
-                  autoComplete="username"
-                  placeholder="Nom d'utilisateur ou email"
-                />
-                <p className="form-hint">Élèves : utilisez votre email. Enseignants/admin : votre nom d'utilisateur.</p>
-              </div>
-            )}
-
+            <div className="form-group">
+              <label className="form-label">Nom d'utilisateur</label>
+              <input
+                type="text"
+                className="form-input"
+                value={form.username}
+                onChange={set('username')}
+                required
+                autoComplete="username"
+                autoFocus
+              />
+            </div>
             <div className="form-group">
               <label className="form-label">Mot de passe</label>
-              <input type="password" className="form-input" value={form.password} onChange={set('password')} required autoComplete="current-password" />
+              <input
+                type="password"
+                className="form-input"
+                value={form.password}
+                onChange={set('password')}
+                required
+                autoComplete="current-password"
+              />
             </div>
-
-            {mode === 'register' && (
-              <div className="form-group">
-                <label className="form-label">
-                  Téléphone <span style={{ color: 'var(--gray-400)', fontWeight: 400 }}>(optionnel)</span>
-                </label>
-                <input className="form-input" value={form.phone} onChange={set('phone')} autoComplete="tel" />
-              </div>
-            )}
-
             <button type="submit" className="btn btn-primary w-full" disabled={isPending} style={{ marginTop: '.25rem' }}>
-              {isPending ? 'Chargement...' : mode === 'login' ? 'Se connecter' : 'Créer mon compte'}
+              {isPending ? 'Connexion...' : 'Se connecter'}
             </button>
           </form>
         </div>
+
+        <p className="login-hint">
+          Vous êtes élève ?{' '}
+          <Link to="/student-login" style={{ fontWeight: 600 }}>
+            Accéder à l'espace élève
+          </Link>
+        </p>
       </div>
     </div>
   );
