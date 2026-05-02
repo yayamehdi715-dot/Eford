@@ -5,10 +5,11 @@ import { getSchedule, createSchedule, deleteSchedule, getCourses, getRooms, getT
 import Spinner from '../../components/Spinner';
 import Modal from '../../components/Modal';
 import ConfirmDialog from '../../components/ConfirmDialog';
-import { useForm } from 'react-hook-form';
 
 const DAYS = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
 const DISPLAY_DAYS = [1, 2, 3, 4, 5, 6];
+
+const emptyForm = { course: '', room: '', dayOfWeek: 1, startTime: '08:00', endTime: '10:00' };
 
 export default function AdminSchedule() {
   const qc = useQueryClient();
@@ -16,6 +17,7 @@ export default function AdminSchedule() {
   const [filterRoom, setFilterRoom] = useState('');
   const [showCreate, setShowCreate] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [form, setForm] = useState(emptyForm);
 
   const params = {};
   if (filterTeacher) params.teacher = filterTeacher;
@@ -30,11 +32,9 @@ export default function AdminSchedule() {
   const { data: rooms } = useQuery({ queryKey: ['rooms'], queryFn: () => getRooms().then(r => r.data) });
   const { data: teachers } = useQuery({ queryKey: ['teachers-list'], queryFn: () => getTeachers({ limit: 100 }).then(r => r.data) });
 
-  const { register, handleSubmit, reset } = useForm();
-
   const createMut = useMutation({
     mutationFn: createSchedule,
-    onSuccess: () => { toast.success('Créneau ajouté'); qc.invalidateQueries(['schedule']); setShowCreate(false); reset(); },
+    onSuccess: () => { toast.success('Créneau ajouté'); qc.invalidateQueries(['schedule']); setShowCreate(false); setForm(emptyForm); },
     onError: (e) => toast.error(e.response?.data?.message || 'Erreur'),
   });
 
@@ -43,7 +43,16 @@ export default function AdminSchedule() {
     onSuccess: () => { toast.success('Créneau supprimé'); qc.invalidateQueries(['schedule']); setDeleteTarget(null); },
   });
 
-  // Organiser par jour
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!form.course || !form.room) { toast.error('Cours et salle requis'); return; }
+    createMut.mutate({
+      course: form.course,
+      room: form.room,
+      days: [{ dayOfWeek: Number(form.dayOfWeek), startTime: form.startTime, endTime: form.endTime }],
+    });
+  };
+
   const byDay = (schedules || []).reduce((acc, s) => {
     acc[s.dayOfWeek] = acc[s.dayOfWeek] || [];
     acc[s.dayOfWeek].push(s);
@@ -112,63 +121,47 @@ export default function AdminSchedule() {
         )}
       </div>
 
-      <Modal isOpen={showCreate} onClose={() => { setShowCreate(false); reset(); }}
+      <Modal
+        isOpen={showCreate}
+        onClose={() => { setShowCreate(false); setForm(emptyForm); }}
         title="Ajouter un créneau"
         footer={<>
-          <button className="btn btn-secondary" onClick={() => { setShowCreate(false); reset(); }}>Annuler</button>
-          <button className="btn btn-primary" onClick={handleSubmit(d => createMut.mutate(d))} disabled={createMut.isPending}>
+          <button className="btn btn-secondary" onClick={() => { setShowCreate(false); setForm(emptyForm); }}>Annuler</button>
+          <button className="btn btn-primary" onClick={handleSubmit} disabled={createMut.isPending}>
             Ajouter
           </button>
         </>}
       >
-        <form>
+        <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label className="form-label">Cours *</label>
-            <select className="form-input" {...register('course', { required: true })}>
-              <option value="">Choisir...</option>
+            <select className="form-input" value={form.course} onChange={e => setForm(f => ({ ...f, course: e.target.value }))} required>
+              <option value="">Choisir un cours...</option>
               {(courses?.data || []).map(c => <option key={c._id} value={c._id}>{c.title}</option>)}
             </select>
+            <p className="form-hint">Le professeur sera automatiquement déduit du cours.</p>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.75rem' }}>
-            <div className="form-group">
-              <label className="form-label">Professeur *</label>
-              <select className="form-input" {...register('teacher', { required: true })}>
-                <option value="">Choisir...</option>
-                {(teachers?.data || []).map(t => <option key={t._id} value={t._id}>{t.firstName} {t.lastName}</option>)}
-              </select>
-            </div>
-            <div className="form-group">
-              <label className="form-label">Salle *</label>
-              <select className="form-input" {...register('room', { required: true })}>
-                <option value="">Choisir...</option>
-                {(rooms || []).map(r => <option key={r._id} value={r._id}>{r.name}</option>)}
-              </select>
-            </div>
+          <div className="form-group">
+            <label className="form-label">Salle *</label>
+            <select className="form-input" value={form.room} onChange={e => setForm(f => ({ ...f, room: e.target.value }))} required>
+              <option value="">Choisir une salle...</option>
+              {(rooms || []).map(r => <option key={r._id} value={r._id}>{r.name}</option>)}
+            </select>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '.75rem' }}>
             <div className="form-group">
               <label className="form-label">Jour *</label>
-              <select className="form-input" {...register('dayOfWeek', { required: true })}>
+              <select className="form-input" value={form.dayOfWeek} onChange={e => setForm(f => ({ ...f, dayOfWeek: e.target.value }))}>
                 {DISPLAY_DAYS.map(d => <option key={d} value={d}>{DAYS[d]}</option>)}
               </select>
             </div>
             <div className="form-group">
               <label className="form-label">Début *</label>
-              <input type="time" className="form-input" {...register('startTime', { required: true })} />
+              <input type="time" className="form-input" value={form.startTime} onChange={e => setForm(f => ({ ...f, startTime: e.target.value }))} required />
             </div>
             <div className="form-group">
               <label className="form-label">Fin *</label>
-              <input type="time" className="form-input" {...register('endTime', { required: true })} />
-            </div>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.75rem' }}>
-            <div className="form-group">
-              <label className="form-label">Date début *</label>
-              <input type="date" className="form-input" {...register('startDate', { required: true })} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Date fin *</label>
-              <input type="date" className="form-input" {...register('endDate', { required: true })} />
+              <input type="time" className="form-input" value={form.endTime} onChange={e => setForm(f => ({ ...f, endTime: e.target.value }))} required />
             </div>
           </div>
         </form>

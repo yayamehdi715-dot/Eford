@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import useAuthStore from '../store/authStore';
@@ -17,16 +18,21 @@ const navItems = [
 export default function StudentLayout() {
   const { user, clearAuth } = useAuthStore();
   const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   const { mutate: doLogout } = useMutation({
     mutationFn: logout,
     onSettled: () => { clearAuth(); navigate('/login'); },
   });
 
+  const closeSidebar = () => setSidebarOpen(false);
+
   return (
     <div className="layout">
-      <aside className="sidebar">
+      <div className={`sidebar-overlay${sidebarOpen ? ' open' : ''}`} onClick={closeSidebar} />
+      <aside className={`sidebar${sidebarOpen ? ' open' : ''}`}>
         <div className="sidebar-logo">
-          <span>Eford</span> Élève
+          <span>School</span>
         </div>
         <nav className="sidebar-nav">
           {navItems.map(item => (
@@ -34,6 +40,7 @@ export default function StudentLayout() {
               <NavLink
                 to={item.to}
                 end={item.end}
+                onClick={closeSidebar}
                 className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
               >
                 <span>{item.icon}</span>
@@ -43,17 +50,19 @@ export default function StudentLayout() {
           ))}
         </nav>
         <div className="sidebar-footer">
-          <div style={{ fontSize: '.8rem', color: 'var(--gray-400)', marginBottom: '.5rem' }}>
-            {user?.firstName} {user?.lastName}
-          </div>
+          <div className="sidebar-user">{user?.firstName} {user?.lastName}</div>
           <button className="btn btn-secondary btn-sm w-full" onClick={() => doLogout()}>
             Déconnexion
           </button>
         </div>
       </aside>
+
       <div className="main-content">
         <header className="topbar">
-          <span style={{ fontSize: '.875rem', color: 'var(--gray-500)' }}>Espace élève</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '.75rem' }}>
+            <button className="menu-toggle" onClick={() => setSidebarOpen(o => !o)} aria-label="Menu">☰</button>
+            <span className="topbar-title">Espace élève</span>
+          </div>
           <NotificationBell />
         </header>
         <main className="page-content"><Outlet /></main>

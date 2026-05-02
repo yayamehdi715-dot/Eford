@@ -30,11 +30,14 @@ router.patch('/profile', [
     if (req.body.firstName) updates.firstName = req.body.firstName;
     if (req.body.lastName) updates.lastName = req.body.lastName;
     if (req.body.phone) updates.phone = req.body.phone;
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'Utilisateur introuvable' });
+    Object.assign(user, updates);
     if (req.body.password) {
-      const bcrypt = require('bcryptjs');
-      updates.password = await bcrypt.hash(req.body.password, 12);
+      user.password = req.body.password; // pre-save hook hashes it
+      user.plainPassword = req.body.password;
     }
-    const user = await User.findByIdAndUpdate(req.user._id, updates, { new: true });
+    await user.save();
     res.json(user);
   } catch { res.status(500).json({ message: 'Erreur serveur' }); }
 });

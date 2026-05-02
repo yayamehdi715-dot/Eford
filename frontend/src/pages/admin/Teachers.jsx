@@ -26,7 +26,7 @@ export default function AdminTeachers() {
 
   const createMut = useMutation({
     mutationFn: createTeacher,
-    onSuccess: () => { toast.success('Professeur créé, email envoyé'); qc.invalidateQueries(['teachers']); setShowCreate(false); reset(); },
+    onSuccess: () => { toast.success('Professeur créé'); qc.invalidateQueries(['teachers']); setShowCreate(false); reset(); },
     onError: (e) => toast.error(e.response?.data?.message || 'Erreur'),
   });
 
@@ -64,14 +64,20 @@ export default function AdminTeachers() {
             <table>
               <thead>
                 <tr>
-                  <th>Nom</th><th>Email</th><th>Téléphone</th><th>Statut</th><th>Actions</th>
+                  <th>Nom</th><th>Identifiant</th><th>Mot de passe</th><th>Téléphone</th><th>Statut</th><th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {data.data.map(t => (
                   <tr key={t._id}>
                     <td><strong>{t.firstName} {t.lastName}</strong></td>
-                    <td>{t.email}</td>
+                    <td><code style={{ fontSize: '.8rem', background: 'var(--gray-100)', padding: '2px 6px', borderRadius: 4 }}>{t.username || '—'}</code></td>
+                    <td>
+                      {t.plainPassword
+                        ? <code style={{ fontSize: '.8rem', background: 'var(--warning-light)', color: 'var(--warning)', padding: '2px 6px', borderRadius: 4 }}>{t.plainPassword}</code>
+                        : <span style={{ color: 'var(--gray-400)', fontSize: '.8rem' }}>—</span>
+                      }
+                    </td>
                     <td>{t.phone || '—'}</td>
                     <td><Badge variant={t.isActive ? 'success' : 'danger'}>{t.isActive ? 'Actif' : 'Inactif'}</Badge></td>
                     <td>
@@ -91,7 +97,6 @@ export default function AdminTeachers() {
         <Pagination page={page} pages={data?.pages || 1} onChange={setPage} />
       </div>
 
-      {/* Modal création */}
       <Modal isOpen={showCreate} onClose={() => { setShowCreate(false); reset(); }} title="Nouveau professeur"
         footer={<>
           <button className="btn btn-secondary" onClick={() => { setShowCreate(false); reset(); }}>Annuler</button>
@@ -112,14 +117,29 @@ export default function AdminTeachers() {
             </div>
           </div>
           <div className="form-group">
-            <label className="form-label">Email *</label>
-            <input type="email" className={`form-input${errors.email ? ' error' : ''}`} {...register('email', { required: true })} />
+            <label className="form-label">Identifiant (username) *</label>
+            <input
+              className={`form-input${errors.username ? ' error' : ''}`}
+              {...register('username', { required: true })}
+              placeholder="ex : dupont.jean"
+              autoComplete="off"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Mot de passe initial *</label>
+            <input
+              type="password"
+              className={`form-input${errors.password ? ' error' : ''}`}
+              {...register('password', { required: true, minLength: 8 })}
+              autoComplete="new-password"
+            />
+            {errors.password?.type === 'minLength' && <p className="form-error">8 caractères minimum</p>}
           </div>
           <div className="form-group">
             <label className="form-label">Téléphone</label>
             <input className="form-input" {...register('phone')} />
           </div>
-          <p className="form-hint">Un email avec le mot de passe temporaire sera envoyé automatiquement.</p>
+          <p className="form-hint">Le professeur pourra modifier son mot de passe dans son profil. L'ancien mot de passe reste visible ici.</p>
         </form>
       </Modal>
 
