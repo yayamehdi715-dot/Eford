@@ -37,7 +37,5 @@ userSchema.methods.comparePassword = function (plain) {
 };
 
 userSchema.index({ role: 1 });
-userSchema.index({ email: 1 }, { sparse: true });
-userSchema.index({ username: 1 }, { sparse: true });
 
 module.exports = mongoose.model('User', userSchema);
