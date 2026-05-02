@@ -33,7 +33,7 @@ export default function StudentMyEnrollments() {
         <p className="page-subtitle">{enrollments?.length ?? 0} inscription(s)</p>
       </div>
 
-      {enrollments?.length === 0
+      {!(enrollments?.length)
         ? <EmptyState message="Vous n'êtes inscrit à aucun cours" action={<a href="/student/courses" className="btn btn-primary">Voir le catalogue</a>} />
         : (
           <div className="card">
@@ -41,7 +41,7 @@ export default function StudentMyEnrollments() {
               <table>
                 <thead><tr><th>Cours</th><th>Professeur</th><th>Date d'inscription</th><th>Statut</th><th></th></tr></thead>
                 <tbody>
-                  {enrollments.map(e => (
+                  {(enrollments || []).map(e => (
                     <tr key={e._id}>
                       <td><strong>{e.course?.title}</strong></td>
                       <td>{e.course?.teacher ? `${e.course.teacher.firstName} ${e.course.teacher.lastName}` : '—'}</td>
