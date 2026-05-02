@@ -2,7 +2,21 @@
   "permissions": {
     "allow": [
       "Bash(git init *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git rm *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git remote *)",
+      "Bash(git branch *)",
+      "Bash(git push *)",
+      "Bash(gh auth *)",
+      "Bash(git config *)",
+      "Bash(git commit -m 'fix: use admin@admin.com as default admin email *)",
+      "Bash(git commit -m 'fix: CORS preflight + dynamic origin whitelist *)",
+      "Bash(git commit -m 'fix: sanitize FRONTEND_URL to remove quotes/spaces causing invalid header *)",
+      "Bash(git commit --allow-empty -m 'chore: trigger frontend redeploy *)",
+      "Bash(git commit -m 'fix: trust proxy for Render + rate-limit X-Forwarded-For *)",
+      "Bash(git commit -m 'fix: remove duplicate email index warning *)",
+      "Bash(git commit -m 'feat: add /api/seed route to create admin without shell *)"
     ]
   }
 }
