@@ -18,7 +18,6 @@ const AdminRooms        = lazy(() => import('./pages/admin/Rooms'));
 const AdminSchedule     = lazy(() => import('./pages/admin/Schedule'));
 const AdminEnrollments  = lazy(() => import('./pages/admin/Enrollments'));
 const AdminAbsences     = lazy(() => import('./pages/admin/Absences'));
-const AdminAccounting   = lazy(() => import('./pages/admin/Accounting'));
 const AdminStatistics   = lazy(() => import('./pages/admin/Statistics'));
 const AdminNotifications = lazy(() => import('./pages/admin/Notifications'));
 
@@ -67,7 +66,6 @@ export default function App() {
             <Route path="schedule" element={<AdminSchedule />} />
             <Route path="enrollments" element={<AdminEnrollments />} />
             <Route path="absences" element={<AdminAbsences />} />
-            <Route path="accounting" element={<AdminAccounting />} />
             <Route path="statistics" element={<AdminStatistics />} />
             <Route path="notifications" element={<AdminNotifications />} />
           </Route>

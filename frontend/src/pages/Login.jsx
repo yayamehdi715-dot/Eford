@@ -15,17 +15,18 @@ export default function Login() {
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
 
   const handleLogin = async () => {
-    // Try staff login first, then student login
-    try {
-      const res = await login({ username: form.identifier, password: form.password });
-      return res;
-    } catch (err) {
-      if (err.response?.status === 401 || err.response?.status === 422) {
-        // Try student login with email
-        return api.post('/auth/student-login', { email: form.identifier, password: form.password });
+    const isEmail = form.identifier.includes('@');
+    if (isEmail) {
+      // Student login by email
+      try {
+        return await api.post('/auth/student-login', { email: form.identifier, password: form.password });
+      } catch (err) {
+        if (err.response?.status === 401) throw err;
+        // Fall through to staff login (admin email)
       }
-      throw err;
     }
+    // Staff login by username (or admin email)
+    return login({ username: form.identifier, password: form.password });
   };
 
   const { mutate, isPending } = useMutation({

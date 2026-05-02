@@ -37,11 +37,11 @@ export default function TeacherMyClasses() {
         <p className="page-subtitle">{courses?.length ?? 0} cours assignés</p>
       </div>
 
-      {courses?.length === 0
+      {(courses || []).length === 0
         ? <EmptyState message="Aucun cours assigné pour le moment" />
         : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
-            {courses.map(c => (
+            {(courses || []).map(c => (
               <div key={c._id} className="card" style={{ cursor: 'pointer' }} onClick={() => setSelectedCourse(c)}>
                 <h3 style={{ fontWeight: 600, marginBottom: '.5rem' }}>{c.title}</h3>
                 <p style={{ fontSize: '.8rem', color: 'var(--gray-500)', marginBottom: '.75rem' }}>{c.description || 'Aucune description'}</p>

@@ -15,7 +15,6 @@ const navItems = [
   { to: '/admin/schedule', label: 'Emploi du temps', icon: '📅' },
   { to: '/admin/enrollments', label: 'Inscriptions', icon: '✅' },
   { to: '/admin/absences', label: 'Absences', icon: '🚫' },
-  { to: '/admin/accounting', label: 'Comptabilité', icon: '💰' },
   { to: '/admin/statistics', label: 'Statistiques', icon: '📈' },
   { to: '/admin/notifications', label: 'Notifications', icon: '🔔' },
 ];

@@ -12,6 +12,9 @@ export const createTeacher = (data) => api.post('/admin/teachers', data);
 export const toggleUser = (id) => api.patch(`/admin/users/${id}/toggle`);
 export const deleteUser = (id) => api.delete(`/admin/users/${id}`);
 export const getStudents = (params) => api.get('/admin/students', { params });
+export const getAdminCourseStudents = (courseId) => api.get(`/admin/courses/${courseId}/students`);
+export const adminAddStudent = (courseId, studentId) => api.post(`/admin/courses/${courseId}/students`, { studentId });
+export const adminRemoveStudent = (courseId, studentId) => api.delete(`/admin/courses/${courseId}/students/${studentId}`);
 
 // Courses
 export const getCourses = (params) => api.get('/courses', { params });
@@ -62,13 +65,6 @@ export const getNotifications = (params) => api.get('/notifications', { params }
 export const markRead = (id) => api.patch(`/notifications/${id}/read`);
 export const markAllRead = () => api.patch('/notifications/read-all');
 export const broadcast = (data) => api.post('/notifications/broadcast', data);
-
-// Accounting
-export const getTransactions = (params) => api.get('/accounting', { params });
-export const getMonthlyData = (params) => api.get('/accounting/monthly', { params });
-export const createTransaction = (data) => api.post('/accounting', data);
-export const deleteTransaction = (id) => api.delete(`/accounting/${id}`);
-export const exportAccountingPdf = (params) => api.get('/accounting/export-pdf', { params, responseType: 'blob' });
 
 // Stats
 export const getStats = () => api.get('/stats');

@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { getCourses, createCourse, updateCourse, deleteCourse, getTeachers, getRooms } from '../../api';
+import {
+  getCourses, createCourse, updateCourse, deleteCourse, getTeachers, getRooms,
+  getAdminCourseStudents, adminAddStudent, adminRemoveStudent, getStudents,
+} from '../../api';
 import Spinner from '../../components/Spinner';
 import EmptyState from '../../components/EmptyState';
 import Modal from '../../components/Modal';
@@ -16,10 +19,26 @@ export default function AdminCourses() {
   const [search, setSearch] = useState('');
   const [editing, setEditing] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [manageStudentsCourse, setManageStudentsCourse] = useState(null);
+  const [studentSearch, setStudentSearch] = useState('');
 
   const { data, isLoading } = useQuery({ queryKey: ['courses', page, search], queryFn: () => getCourses({ page, search }).then(r => r.data) });
   const { data: teachersData } = useQuery({ queryKey: ['teachers-list'], queryFn: () => getTeachers({ limit: 100 }).then(r => r.data) });
   const { data: roomsData } = useQuery({ queryKey: ['rooms'], queryFn: () => getRooms().then(r => r.data) });
+
+  // Students in selected course
+  const { data: courseStudents, isLoading: studentsLoading } = useQuery({
+    queryKey: ['course-students-admin', manageStudentsCourse?._id],
+    queryFn: () => getAdminCourseStudents(manageStudentsCourse._id).then(r => r.data),
+    enabled: !!manageStudentsCourse,
+  });
+
+  // All students (for picker)
+  const { data: allStudentsData } = useQuery({
+    queryKey: ['students-list', studentSearch],
+    queryFn: () => getStudents({ search: studentSearch, limit: 20 }).then(r => r.data),
+    enabled: !!manageStudentsCourse,
+  });
 
   const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm();
 
@@ -45,6 +64,19 @@ export default function AdminCourses() {
     onSuccess: () => { toast.success('Supprimé'); qc.invalidateQueries(['courses']); setDeleteTarget(null); },
   });
 
+  const addStudentMut = useMutation({
+    mutationFn: ({ studentId }) => adminAddStudent(manageStudentsCourse._id, studentId),
+    onSuccess: () => { toast.success('Élève ajouté'); qc.invalidateQueries(['course-students-admin', manageStudentsCourse._id]); qc.invalidateQueries(['courses']); },
+    onError: (e) => toast.error(e.response?.data?.message || 'Erreur'),
+  });
+
+  const removeStudentMut = useMutation({
+    mutationFn: (studentId) => adminRemoveStudent(manageStudentsCourse._id, studentId),
+    onSuccess: () => { toast.success('Élève retiré'); qc.invalidateQueries(['course-students-admin', manageStudentsCourse._id]); qc.invalidateQueries(['courses']); },
+    onError: () => toast.error('Erreur'),
+  });
+
+  const enrolledIds = new Set((courseStudents || []).map(s => s._id));
   const teachers = teachersData?.data || [];
   const rooms = roomsData || [];
 
@@ -76,7 +108,8 @@ export default function AdminCourses() {
                     <td><Badge variant={c.requiresApproval ? 'warning' : 'success'}>{c.requiresApproval ? 'Requise' : 'Auto'}</Badge></td>
                     <td><Badge variant={c.isActive ? 'success' : 'danger'}>{c.isActive ? 'Actif' : 'Inactif'}</Badge></td>
                     <td>
-                      <div style={{ display: 'flex', gap: '.5rem' }}>
+                      <div style={{ display: 'flex', gap: '.5rem', flexWrap: 'wrap' }}>
+                        <button className="btn btn-secondary btn-sm" onClick={() => { setManageStudentsCourse(c); setStudentSearch(''); }}>Élèves</button>
                         <button className="btn btn-secondary btn-sm" onClick={() => openEdit(c)}>Modifier</button>
                         <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(c)}>Suppr.</button>
                       </div>
@@ -90,6 +123,80 @@ export default function AdminCourses() {
         <Pagination page={page} pages={data?.pages || 1} onChange={setPage} />
       </div>
 
+      {/* Modal gestion des élèves */}
+      <Modal
+        isOpen={!!manageStudentsCourse}
+        onClose={() => setManageStudentsCourse(null)}
+        title={`Élèves — ${manageStudentsCourse?.title}`}
+        footer={<button className="btn btn-secondary" onClick={() => setManageStudentsCourse(null)}>Fermer</button>}
+      >
+        <div>
+          <p style={{ fontSize: '.8rem', color: 'var(--gray-500)', marginBottom: '1rem' }}>
+            {(courseStudents || []).length} élève(s) inscrit(s)
+          </p>
+
+          {/* Liste des élèves inscrits */}
+          {studentsLoading ? <Spinner /> : (courseStudents || []).length === 0
+            ? <p style={{ fontSize: '.875rem', color: 'var(--gray-400)', marginBottom: '1rem' }}>Aucun élève inscrit</p>
+            : (
+              <div style={{ marginBottom: '1.25rem' }}>
+                {courseStudents.map(s => (
+                  <div key={s._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '.5rem .625rem', borderRadius: 6, border: '1px solid var(--gray-200)', marginBottom: '.375rem' }}>
+                    <div>
+                      <span style={{ fontWeight: 600, fontSize: '.875rem' }}>{s.firstName} {s.lastName}</span>
+                      <span style={{ fontSize: '.75rem', color: 'var(--gray-400)', marginLeft: '.5rem' }}>{s.email}</span>
+                    </div>
+                    <button
+                      className="btn btn-danger btn-sm"
+                      onClick={() => removeStudentMut.mutate(s._id)}
+                      disabled={removeStudentMut.isPending}
+                    >
+                      Retirer
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )
+          }
+
+          {/* Ajouter un élève */}
+          <div style={{ borderTop: '1px solid var(--gray-100)', paddingTop: '1rem' }}>
+            <label className="form-label">Ajouter un élève</label>
+            <input
+              className="form-input"
+              placeholder="Rechercher un élève..."
+              value={studentSearch}
+              onChange={e => setStudentSearch(e.target.value)}
+              style={{ marginBottom: '.625rem' }}
+            />
+            <div style={{ maxHeight: 200, overflowY: 'auto' }}>
+              {(allStudentsData?.data || [])
+                .filter(s => !enrolledIds.has(s._id))
+                .map(s => (
+                  <div key={s._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '.4rem .625rem', borderRadius: 6, border: '1px solid var(--gray-200)', marginBottom: '.25rem' }}>
+                    <div>
+                      <span style={{ fontWeight: 500, fontSize: '.875rem' }}>{s.firstName} {s.lastName}</span>
+                      <span style={{ fontSize: '.75rem', color: 'var(--gray-400)', marginLeft: '.5rem' }}>{s.email}</span>
+                    </div>
+                    <button
+                      className="btn btn-primary btn-sm"
+                      onClick={() => addStudentMut.mutate({ studentId: s._id })}
+                      disabled={addStudentMut.isPending}
+                    >
+                      Inscrire
+                    </button>
+                  </div>
+                ))
+              }
+              {(allStudentsData?.data || []).filter(s => !enrolledIds.has(s._id)).length === 0 && studentSearch && (
+                <p style={{ fontSize: '.8rem', color: 'var(--gray-400)', padding: '.5rem' }}>Aucun élève trouvé</p>
+              )}
+            </div>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Modal création/édition */}
       <Modal isOpen={!!editing} onClose={() => { setEditing(null); reset(); }}
         title={editing?._id ? 'Modifier le cours' : 'Nouveau cours'}
         footer={<>

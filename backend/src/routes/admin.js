@@ -1,6 +1,8 @@
 const router = require('express').Router();
 const { body, param } = require('express-validator');
 const User = require('../models/User');
+const Enrollment = require('../models/Enrollment');
+const Course = require('../models/Course');
 const authenticate = require('../middleware/auth');
 const authorize = require('../middleware/roles');
 const validate = require('../middleware/validate');
@@ -106,6 +108,56 @@ router.get('/students', async (req, res) => {
       User.countDocuments(filter),
     ]);
     res.json({ data: students, total, page, pages: Math.ceil(total / limit) });
+  } catch { res.status(500).json({ message: 'Erreur serveur' }); }
+});
+
+// GET /api/admin/courses/:courseId/students — élèves inscrits dans un cours
+router.get('/courses/:courseId/students', [param('courseId').isMongoId()], validate, async (req, res) => {
+  try {
+    const enrollments = await Enrollment.find({ course: req.params.courseId, status: 'approved' })
+      .populate('student', 'firstName lastName email phone')
+      .lean();
+    res.json(enrollments.map(e => e.student));
+  } catch { res.status(500).json({ message: 'Erreur serveur' }); }
+});
+
+// POST /api/admin/courses/:courseId/students — inscrire directement un élève
+router.post('/courses/:courseId/students', [
+  param('courseId').isMongoId(),
+  body('studentId').isMongoId(),
+], validate, async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const { studentId } = req.body;
+    const course = await Course.findById(courseId);
+    if (!course) return res.status(404).json({ message: 'Cours introuvable' });
+    const student = await User.findOne({ _id: studentId, role: 'student' });
+    if (!student) return res.status(404).json({ message: 'Élève introuvable' });
+    const exists = await Enrollment.findOne({ course: courseId, student: studentId });
+    if (exists) {
+      if (exists.status === 'approved') return res.status(409).json({ message: 'Élève déjà inscrit' });
+      exists.status = 'approved';
+      exists.approvedAt = new Date();
+      exists.approvedBy = req.user._id;
+      await exists.save();
+      return res.json(exists);
+    }
+    const enrollment = await Enrollment.create({
+      course: courseId, student: studentId,
+      status: 'approved', approvedAt: new Date(), approvedBy: req.user._id,
+    });
+    res.status(201).json(enrollment);
+  } catch { res.status(500).json({ message: 'Erreur serveur' }); }
+});
+
+// DELETE /api/admin/courses/:courseId/students/:studentId — retirer un élève
+router.delete('/courses/:courseId/students/:studentId', [
+  param('courseId').isMongoId(),
+  param('studentId').isMongoId(),
+], validate, async (req, res) => {
+  try {
+    await Enrollment.findOneAndDelete({ course: req.params.courseId, student: req.params.studentId });
+    res.json({ message: 'Élève retiré du cours' });
   } catch { res.status(500).json({ message: 'Erreur serveur' }); }
 });
 
