@@ -100,7 +100,8 @@ router.get('/students', async (req, res) => {
       filter.$or = [
         { firstName: new RegExp(search, 'i') },
         { lastName: new RegExp(search, 'i') },
-        { email: new RegExp(search, 'i') },
+        { username: new RegExp(search, 'i') },
+        { schoolLevel: new RegExp(search, 'i') },
       ];
     }
     const [students, total] = await Promise.all([

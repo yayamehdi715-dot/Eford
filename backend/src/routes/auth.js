@@ -51,14 +51,14 @@ router.post('/login', authLimiter, [
   }
 });
 
-// POST /api/auth/student-login — élèves uniquement : login par email
+// POST /api/auth/student-login — élèves uniquement : login par username
 router.post('/student-login', authLimiter, [
-  body('email').isEmail().normalizeEmail(),
+  body('username').trim().notEmpty(),
   body('password').notEmpty(),
 ], validate, async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email, role: 'student' }).select('+password +refreshToken');
+    const { username, password } = req.body;
+    const user = await User.findOne({ username: username.toLowerCase(), role: 'student' }).select('+password +refreshToken');
     if (!user || !user.isActive) {
       return res.status(401).json({ message: 'Identifiants incorrects' });
     }
@@ -79,16 +79,17 @@ router.post('/student-login', authLimiter, [
 router.post('/register', authLimiter, [
   body('firstName').trim().notEmpty().isLength({ max: 50 }),
   body('lastName').trim().notEmpty().isLength({ max: 50 }),
-  body('email').isEmail().normalizeEmail(),
+  body('username').trim().notEmpty().isLength({ min: 3, max: 30 }).matches(/^[a-zA-Z0-9._-]+$/),
   body('password').isLength({ min: 6, max: 72 }),
+  body('schoolLevel').trim().notEmpty(),
   body('phone').optional().trim().isLength({ max: 20 }),
 ], validate, async (req, res) => {
   try {
-    const { firstName, lastName, email, password, phone } = req.body;
-    const exists = await User.findOne({ email });
-    if (exists) return res.status(409).json({ message: 'Email déjà utilisé' });
+    const { firstName, lastName, username, password, schoolLevel, phone } = req.body;
+    const exists = await User.findOne({ username: username.toLowerCase() });
+    if (exists) return res.status(409).json({ message: 'Cet identifiant est déjà utilisé' });
 
-    const user = await User.create({ firstName, lastName, email, password, phone, role: 'student' });
+    const user = await User.create({ firstName, lastName, username: username.toLowerCase(), password, schoolLevel, phone, role: 'student' });
     const { accessToken, refreshToken } = generateTokens(user._id);
     user.refreshToken = refreshToken;
     await user.save();

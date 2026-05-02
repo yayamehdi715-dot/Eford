@@ -144,7 +144,7 @@ export default function AdminCourses() {
                   <div key={s._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '.5rem .625rem', borderRadius: 6, border: '1px solid var(--gray-200)', marginBottom: '.375rem' }}>
                     <div>
                       <span style={{ fontWeight: 600, fontSize: '.875rem' }}>{s.firstName} {s.lastName}</span>
-                      <span style={{ fontSize: '.75rem', color: 'var(--gray-400)', marginLeft: '.5rem' }}>{s.email}</span>
+                      <span style={{ fontSize: '.75rem', color: 'var(--gray-400)', marginLeft: '.5rem' }}>{s.username}</span>
                     </div>
                     <button
                       className="btn btn-danger btn-sm"
@@ -176,7 +176,7 @@ export default function AdminCourses() {
                   <div key={s._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '.4rem .625rem', borderRadius: 6, border: '1px solid var(--gray-200)', marginBottom: '.25rem' }}>
                     <div>
                       <span style={{ fontWeight: 500, fontSize: '.875rem' }}>{s.firstName} {s.lastName}</span>
-                      <span style={{ fontSize: '.75rem', color: 'var(--gray-400)', marginLeft: '.5rem' }}>{s.email}</span>
+                      <span style={{ fontSize: '.75rem', color: 'var(--gray-400)', marginLeft: '.5rem' }}>{s.username}</span>
                     </div>
                     <button
                       className="btn btn-primary btn-sm"

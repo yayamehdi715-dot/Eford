@@ -5,12 +5,11 @@ const userSchema = new mongoose.Schema({
   firstName:     { type: String, required: true, trim: true, maxlength: 50 },
   lastName:      { type: String, required: true, trim: true, maxlength: 50 },
   email:         { type: String, lowercase: true, trim: true, sparse: true },
-  // username uniquement pour les profs (créé par l'admin)
   username:      { type: String, trim: true, lowercase: true, sparse: true },
   password:      { type: String, required: true },
-  // Mot de passe en clair conservé pour que l'admin puisse le communiquer (profs seulement)
   plainPassword: { type: String, select: false },
   role:          { type: String, enum: ['admin', 'teacher', 'student'], required: true },
+  schoolLevel:   { type: String, trim: true },
   phone:         { type: String, trim: true, maxlength: 20 },
   isActive:      { type: Boolean, default: true },
   refreshToken:  { type: String, select: false },
