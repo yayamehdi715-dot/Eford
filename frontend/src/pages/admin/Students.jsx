@@ -54,13 +54,19 @@ export default function AdminStudents() {
           <div className="table-wrap">
             <table>
               <thead>
-                <tr><th>Nom</th><th>Identifiant</th><th>Niveau scolaire</th><th>Téléphone</th><th>Statut</th><th>Actions</th></tr>
+                <tr><th>Nom</th><th>Identifiant</th><th>Mot de passe</th><th>Niveau scolaire</th><th>Téléphone</th><th>Statut</th><th>Actions</th></tr>
               </thead>
               <tbody>
                 {(data?.data || []).map(s => (
                   <tr key={s._id}>
                     <td><strong>{s.firstName} {s.lastName}</strong></td>
-                    <td>{s.username || '—'}</td>
+                    <td><code style={{ fontSize: '.8rem', background: 'var(--gray-100)', padding: '2px 6px', borderRadius: 4 }}>{s.username || '—'}</code></td>
+                    <td>
+                      {s.plainPassword
+                        ? <code style={{ fontSize: '.8rem', background: 'var(--warning-light)', color: 'var(--warning)', padding: '2px 6px', borderRadius: 4 }}>{s.plainPassword}</code>
+                        : <span style={{ color: 'var(--gray-400)', fontSize: '.8rem' }}>—</span>
+                      }
+                    </td>
                     <td>{s.schoolLevel || '—'}</td>
                     <td>{s.phone || '—'}</td>
                     <td><Badge variant={s.isActive ? 'success' : 'danger'}>{s.isActive ? 'Actif' : 'Inactif'}</Badge></td>

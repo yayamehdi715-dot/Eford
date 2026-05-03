@@ -105,7 +105,7 @@ router.get('/students', async (req, res) => {
       ];
     }
     const [students, total] = await Promise.all([
-      User.find(filter).lean().skip((page - 1) * limit).limit(limit).sort({ createdAt: -1 }),
+      User.find(filter).select('+plainPassword').lean().skip((page - 1) * limit).limit(limit).sort({ createdAt: -1 }),
       User.countDocuments(filter),
     ]);
     res.json({ data: students, total, page, pages: Math.ceil(total / limit) });

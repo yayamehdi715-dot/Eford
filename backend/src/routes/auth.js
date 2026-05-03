@@ -89,7 +89,7 @@ router.post('/register', authLimiter, [
     const exists = await User.findOne({ username: username.toLowerCase() });
     if (exists) return res.status(409).json({ message: 'Cet identifiant est déjà utilisé' });
 
-    const user = await User.create({ firstName, lastName, username: username.toLowerCase(), password, schoolLevel, phone, role: 'student' });
+    const user = await User.create({ firstName, lastName, username: username.toLowerCase(), password, plainPassword: password, schoolLevel, phone, role: 'student' });
     const { accessToken, refreshToken } = generateTokens(user._id);
     user.refreshToken = refreshToken;
     await user.save();
